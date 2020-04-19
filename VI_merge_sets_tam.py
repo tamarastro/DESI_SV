@@ -24,10 +24,10 @@ tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
 tiles = ['68002']
 nights = ['20200315']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
-subset = "_3_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
+subset = "_4_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
 output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
 
-on_nersc = False
+on_nersc = True
 if on_nersc:
   import desispec.io
   import desispec
@@ -73,10 +73,8 @@ if os.path.isfile(log_file):
     os.makedirs(VI_dir+'output/logs_old')
   os.system('cp '+log_file+' '+VI_dir+'output/logs_old/'+output_name+'.log_'+str(datetime.timestamp(datetime.now(timezone('UTC')))))
 
-# Print out the list of VI files
-vi_files
-
 # Read the first file in to vi to set up vi
+print(vi_files[0])
 vi = pd.read_csv(VI_dir + vi_files[0], delimiter = " , ", engine='python')
 
 # Read in the rest of the files and append them to vi
@@ -230,9 +228,12 @@ print('-----------------------------------------------------------------')
 
 # Start the counter
 i=0
+uselog='n'
+
 # If a log file exists, read it in:
 if os.path.isfile(log_file):
   log_old= pd.read_csv(log_file, delimiter = ', ', engine='python', comment='#')
+  print('Log file:')
   display(log_old)
   nlog=len(log_old['index'])
   uselog=str(input("Log file exists with %s entries.  Press n to ignore, any other key to read in and continue:"%str(nlog)) or 'y')
@@ -243,7 +244,6 @@ log.write('index, TargetID, bestzmerge, bestclassmerge, bestspectypemerge, besti
 
 if uselog != 'n':
   while i<nlog: 
-    print(nlog,'i=',i)
     if unique_targets[i] != log_old.loc[i]['TargetID']:
       print('WARNING: Log file and current input do not match.  Matching to TargetID anyway.')
     vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best z']         = log_old.loc[i]['bestzmerge']
@@ -252,7 +252,6 @@ if uselog != 'n':
     vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best issue']     = log_old.loc[i]['bestissuemerge']
     vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'merger comment'] = log_old.loc[i]['mergercomment']
     log_text = str(i)+', '+str(log_old.loc[i]['TargetID'])+', '+str(log_old.loc[i]['bestzmerge'])+', '+str(log_old.loc[i]['bestclassmerge'])+', '+log_old.loc[i]['bestspectypemerge']+', '+log_old.loc[i]['bestissuemerge']+', '+log_old.loc[i]['mergercomment']+'\n'
-    print(log_text)
     log.write(log_text)
     i=i+1
 print('Read in log file, with %s entries, continuing from there.'%str(nlog))
@@ -291,7 +290,7 @@ while i<len(unique_targets):
 
   # Fix issue
   tmp_bestissue = conflict.loc[conflict.first_valid_index()]['best issue']
-  bestissue = str(input("Best issue (R=bad z, S=bad spectype, C=bad spectrum, --=no issue) [%s]:"%str(tmp_bestissue)) or 'o')
+  bestissue = str(input("Best issue (R=bad z, C=bad spectype, S=bad spectrum, --=no issue) [%s]:"%str(tmp_bestissue)) or 'o')
   testissue = (issue_match(bestissue) or bestissue=='o')
   while not(testissue):
     print("Invalid choice, please choose R for bad redshift, S for bad spectype, C for bad spectrum, or press enter to accept the default.")

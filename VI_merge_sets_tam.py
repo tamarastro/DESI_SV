@@ -27,7 +27,7 @@ petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
 subset = "_3_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
 output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
 
-on_nersc = True
+on_nersc = False
 if on_nersc:
   import desispec.io
   import desispec
@@ -45,7 +45,8 @@ if on_nersc:
 if on_nersc:
   VI_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO/'
 else:
-  VI_dir = '/Users/uqtdavi1/Documents/Astro/DESI/SV_redshifts/SV0/QSO/'
+  #VI_dir = '/Users/uqtdavi1/Documents/Astro/DESI/SV_redshifts/SV0/QSO/'
+  VI_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/'
 
 
 # We will read all the *.csv files in this directory. Change as needed.
@@ -227,15 +228,39 @@ print('-----------------------------------------------------------------')
 print('Ready to do some merging?  Default values are in square brackets.')
 print('-----------------------------------------------------------------')
 
-# If a log file exists, read it in:
-#if os.path.isfile(log_file):
-#  NOT USED YET
-# Write a new log file:
-log=open(log_file,'w')
-log.write('#i, TargetID, bestzmerge, bestclassmerge, bestspectypemerge, bestissuemerge, mergercomment\n')
-
+# Start the counter
 i=0
+# If a log file exists, read it in:
+if os.path.isfile(log_file):
+  log_old= pd.read_csv(log_file, delimiter = ', ', engine='python', comment='#')
+  display(log_old)
+  nlog=len(log_old['index'])
+  uselog=str(input("Log file exists with %s entries.  Press n to ignore, any other key to read in and continue:"%str(nlog)) or 'y')
+
+# Prepare a new log file (this will overwrite the previous one, but a time-stamped copy of the previous one is saved in logs_old directory:
+log=open(log_file,'w')
+log.write('index, TargetID, bestzmerge, bestclassmerge, bestspectypemerge, bestissuemerge, mergercomment\n')
+
+if uselog != 'n':
+  while i<nlog: 
+    print(nlog,'i=',i)
+    if unique_targets[i] != log_old.loc[i]['TargetID']:
+      print('WARNING: Log file and current input do not match.  Matching to TargetID anyway.')
+    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best z']         = log_old.loc[i]['bestzmerge']
+    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best class']     = log_old.loc[i]['bestclassmerge']
+    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best spectype']  = log_old.loc[i]['bestspectypemerge']
+    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best issue']     = log_old.loc[i]['bestissuemerge']
+    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'merger comment'] = log_old.loc[i]['mergercomment']
+    log_text = str(i)+', '+str(log_old.loc[i]['TargetID'])+', '+str(log_old.loc[i]['bestzmerge'])+', '+str(log_old.loc[i]['bestclassmerge'])+', '+log_old.loc[i]['bestspectypemerge']+', '+log_old.loc[i]['bestissuemerge']+', '+log_old.loc[i]['mergercomment']+'\n'
+    print(log_text)
+    log.write(log_text)
+    i=i+1
+print('Read in log file, with %s entries, continuing from there.'%str(nlog))
+
+
+
 while i<len(unique_targets): 
+  print('test')
   print("%s/%s"%(i,len(unique_targets)))
   conflict = vi.loc[vi.TargetID==unique_targets[i]]
   display_conflict(i)
@@ -276,7 +301,8 @@ while i<len(unique_targets):
     bestissuemerge = tmp_bestissue
   else:
     bestissuemerge = bestissue
-   # Add comment
+
+  # Add comment
   mergercomment = str(input("Merger comment:") or 'None')
 
   print("Your results:  %s, %s, %s, %s, %s"%(str(bestzmerge), str(bestclassmerge), bestspectypemerge, bestissuemerge, mergercomment))

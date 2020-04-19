@@ -27,10 +27,12 @@ petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
 subset = "_3_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
 output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
 
-on_nersc = False
+on_nersc = True
 if on_nersc:
   import desispec.io
   import desispec
+  sys.path.append("/global/homes/t/tamarad/desihub/prospect/py")
+  from prospect import utils_specviewer,plotframes
 
 # Here you need to choose the tiles on which your objects were observed
   tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
@@ -233,7 +235,7 @@ log=open(log_file,'w')
 log.write('#i, TargetID, bestzmerge, bestclassmerge, bestspectypemerge, bestissuemerge, mergercomment\n')
 
 i=0
-while i<=0: #len(unique_targets): 
+while i<len(unique_targets): 
   print("%s/%s"%(i,len(unique_targets)))
   conflict = vi.loc[vi.TargetID==unique_targets[i]]
   display_conflict(i)

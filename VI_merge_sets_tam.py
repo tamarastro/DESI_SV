@@ -24,7 +24,7 @@ tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
 tiles = ['68002']
 nights = ['20200315']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
-subset = "_4_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
+subset = "_7_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
 output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
 
 on_nersc = True
@@ -254,13 +254,13 @@ if uselog != 'n':
     log_text = str(i)+', '+str(log_old.loc[i]['TargetID'])+', '+str(log_old.loc[i]['bestzmerge'])+', '+str(log_old.loc[i]['bestclassmerge'])+', '+log_old.loc[i]['bestspectypemerge']+', '+log_old.loc[i]['bestissuemerge']+', '+log_old.loc[i]['mergercomment']+'\n'
     log.write(log_text)
     i=i+1
-print('Read in log file, with %s entries, continuing from there.'%str(nlog))
+  print('Read in log file, with %s entries, continuing from there.'%str(nlog))
 
 
 
 while i<len(unique_targets): 
   print('test')
-  print("%s/%s"%(i,len(unique_targets)))
+  print("%s/%s"%(i,len(unique_targets)-1))
   conflict = vi.loc[vi.TargetID==unique_targets[i]]
   display_conflict(i)
   

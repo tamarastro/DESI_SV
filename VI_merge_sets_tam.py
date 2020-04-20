@@ -24,7 +24,7 @@ tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
 tiles = ['68002']
 nights = ['20200315']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
-subset = "_7_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
+subset = "_2_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
 output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
 
 on_nersc = True
@@ -56,8 +56,8 @@ vi_files=[]
 # Choose a subset
 pattern = "desi*"+subset+"*.csv"
 for entry in all_files:
-    if fnmatch.fnmatch(entry, pattern):
-            vi_files.append(entry)
+  if fnmatch.fnmatch(entry, pattern):
+    vi_files.append(entry)
 
 # Prep the output files
 output_file = VI_dir+'output/'+output_name+'.csv'
@@ -186,6 +186,8 @@ unique_targets = np.unique(vi_conflict['TargetID'].tolist())
 unique_target_csv = str(unique_targets[0])
 for target in unique_targets[1:]:
   unique_target_csv = unique_target_csv+', '+str(target)
+print('Copy the following list of problematic targets in to the "targets" list in Prospect_targetid.ipynb')
+# On the wiki start from Computing/JupyterAtNERSC 
 print('Targets with problematic VI: ', unique_target_csv)
 print('Total number of conflicts to resolve: ', len(unique_targets))
 

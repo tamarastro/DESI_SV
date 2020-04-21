@@ -7,7 +7,7 @@ import fnmatch
 
 merged_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/output/' #dir with vi merged output
 tiles = ['68002']
-nights = ['20200315']
+nights = ['20200315'] 
 #subset = "_3_" 
 
 # Read in list of files in merged directory

@@ -40,7 +40,7 @@ def plot_histogram(x,bin_edges,xlabel,ylabel,annotation,title,plot_name):
   plt.savefig(plot_name,bbox_inches='tight')
   plt.close()
 
-
+# Enumerate the spectypes so they can be easily plotted
 ispectype = np.zeros(len(m['best spectype']))
 ispectype[m['best spectype']=='STAR'] = int(0)
 ispectype[m['best spectype']=='GALAXY'] = int(1)
@@ -49,7 +49,9 @@ print('len(ispectype)=',len(ispectype))
 print(len(ispectype[m['best spectype']=='STAR']))
 print(len(ispectype[m['best spectype']=='GALAXY']))
 print(len(ispectype[m['best spectype']=='QSO']))
-print(157+399+361)
+
+print('S' in m['best issue'])
+exit()
 
 # Plot Best z vs Redrock z and colour by Quality
 plot_scatter_colors(m['Redrock z'],m['best z'],m['best class'],[0.0,4.0],'Redrock z','Best z','Quality (4 is good)',output_file_base+'_bestz-vs-Redrock.png')

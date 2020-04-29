@@ -5,30 +5,33 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt 
 
-def plot_scatter_colors(x,y,col,clim,xlabel,ylabel,collabel,plot_name,xlim=0,ylim=0,psize=8.0,annotation=''):
-  print('Plotting scatter with colours')
+def plot_scatter_colors(x,y,col,clim,xlabel,ylabel,collabel,plot_name,xlim=0,ylim=0,psize=8.0,iextra=[9999],annotation=''):
   plt.figure(dpi=200)
+  # Plot the VI disagreements using crosses
+  if iextra[0] != 9999:
+      plt.scatter(x[iextra],y[iextra], marker='x',s=18.0,
+              c=col[iextra], cmap=plt.cm.get_cmap('jet_r'))
   plt.scatter(x,y, s=psize,
-              c=col, cmap=plt.cm.get_cmap('jet_r'))
+              c=col, cmap=plt.cm.get_cmap('jet_r'),alpha=0.9)
   plt.colorbar(ticks=range(5), label=collabel)
   plt.xlabel(xlabel)
   plt.ylabel(ylabel)
   if xlim !=0: plt.xlim(xlim)
   if ylim !=0: plt.ylim(ylim)
-  plt.annotate(annotation,xy=(0.1,0.1),xycoords='axes fraction')
+  plt.annotate(annotation,xy=(0.05,0.9),xycoords='axes fraction')
   plt.clim(clim[0],clim[1])
   plt.savefig(plot_name,bbox_inches='tight')
   plt.close()
 
-def plot_histogram(x,bin_edges,xlabel,ylabel,plot_name,comp=[0],annotation='',title=''):
+def plot_histogram(x,bin_edges,xlabel,ylabel,plot_name,comp=[999],annotation='',title=''):
   plt.figure(dpi=200)
   plt.hist(x, bins = bin_edges,rwidth=0.85)
-  if comp[0] != 0:
+  if comp[0] != 999:
     plt.hist(comp, bins = bin_edges,rwidth=0.25)
   plt.xlabel(xlabel)
   plt.ylabel(ylabel)
   plt.title(title)
-  plt.annotate(annotation,xy=(0.1,0.9),xycoords='axes fraction')
+  plt.annotate(annotation,xy=(0.05,0.9),xycoords='axes fraction')
   plt.savefig(plot_name,bbox_inches='tight')
   plt.close()
 
@@ -68,10 +71,15 @@ i_disagree_spectype = g['VI spectype'] != g['best spectype']
 #print( g[['TargetID','best spectype','VI spectype']][i_disagree_spectype])
 #print(sum(i_disagree_spectype))
 
+i_good_bestz = g['best class'] >=2.5  # Choose only those redshifts that were given a quality >=2.5 in the merged results
+i_good_VIz   = g['VI class']   >=3.0  # Choose only those redshifts that were given a quality >=3 by the VI
+i_good_z = i_good_bestz | i_good_VIz
+
 i_disagree_all = i_disagree_class | i_disagree_z | i_disagree_spectype
+i_disagree_good = i_disagree_z & i_good_z
 print('\nOut of %s objects, you disagreed with the merged results on %s redshifts, %s qualities, and %s spectypes.'%(len(g['TargetID']),sum(i_disagree_z),sum(i_disagree_class),sum(i_disagree_spectype)))
-print('')
-print('Total number of disagreements = %s.'%sum(i_disagree_all))
+print('\nNumber of redshift disagreements on high-quality redshifts = %s.'%sum(i_disagree_good))
+print('\nTotal number of disagreements = %s.'%sum(i_disagree_all))
 print( g[['TargetID','best z','VI z','best class','VI class','best spectype','VI spectype']][i_disagree_all])
 
 conflicts = ''
@@ -81,7 +89,6 @@ print('\nLook at your disagreements by opening the Prospect notebook viewer http
 print(conflicts[2:])
 
 # Plot VI z vs Merged z and colour by Quality
-plot_scatter_colors(g['best z'],g['VI z'],g['best class'],[0.0,4.0],'Best z','VI z','Quality (4 is good)',output_dir+VI_base+'_z.png')
-plot_histogram(g['best class'],np.arange(11)/2.-0.25,'Quality','Number of cases',output_dir+VI_base+'_quality.png',comp=g['VI class'],annotation='Blue=VI; Orange=Merged VI')
-
+plot_scatter_colors(g['best z'],g['VI z'],g['best class'],[0.0,4.0],'Best z','VI z','Quality (4 is good)',output_dir+VI_base+'_z.png',iextra=i_disagree_good,annotation='# of z disagreements on high-quality z: %s'%sum(i_disagree_good))
+plot_histogram(g['best class'],np.arange(11)/2.-0.25,'Quality','Number of cases',output_dir+VI_base+'_quality.png',comp=g['VI class'],annotation='Blue=Merged VI; Orange=Single VI')
 

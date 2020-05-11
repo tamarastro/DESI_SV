@@ -32,12 +32,12 @@ for i in range(1,len(merged_files)):
     vi2 = pd.read_csv(merged_dir + merged_files[i], delimiter = ",", engine='python')
     vimerged = vimerged.append(vi2, ignore_index=True)
 
-#for i in np.arange(len(vimerged['TargetID'])):
+#for i in np.arange(len(vimerged['TARGETID'])):
 #  print(vimerged.loc[i]['all VI comments'])
 #print(vimerged[['Redrock z', 'best z', 'best class']])
 
 # Print to a combined file
-vimerged[['TargetID','Redrock z', 'best z', 'best class', 'Redrock spectype', 'best spectype', 'best issue', 'all VI comments', 'merger comment', 'N_VI', 'DELTACHI2','FIBER','FLUX_G','FLUX_R','FLUX_Z','FIBERFLUX_G','FIBERFLUX_R','FIBERFLUX_Z']].to_csv(combined_file,index=False)
+vimerged[['TARGETID', 'Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'best issue', 'all VI comments', 'merger comment','N_VI','DELTACHI2', 'ZWARN', 'ZERR','FIBER','FLUX_G', 'FLUX_R', 'FLUX_Z','FIBERFLUX_G', 'FIBERFLUX_R', 'FIBERFLUX_Z', 'MW_TRANSMISSION_G','MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z']].to_csv(combined_file,index=False)
 
 vitest = pd.read_csv(combined_file)
 print(vitest)

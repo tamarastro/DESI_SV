@@ -83,13 +83,16 @@ for i in range(1,len(vi_files)):
     vi2 = pd.read_csv(VI_dir + vi_files[i], delimiter = " , ", engine='python')
     vi = vi.append(vi2, ignore_index=True)
     
+# Change the column name to TARGETID to match standards elsewhere in DESI.
+vi = vi.rename(columns={"TargetID": "TARGETID"})
+
 #make groups of visual inspections, grouped by unique objects, and state number of single and multiple VIs
-vi_gp = vi.groupby(['TargetID'])
+vi_gp = vi.groupby(['TARGETID'])
 print('There are ' + str(len(vi)) + ' visual inspections of a total of ' + str(len(vi_gp)) + ' unique objects')
 
 #vi is a dataframe
 #pd.set_option('display.max_rows', 10) # This is for a notebook only
-#display(vi.sort_values(by=['TargetID']))
+#display(vi.sort_values(by=['TARGETID']))
 #vi.keys()
 
 #----------------------------------------------------------------
@@ -105,14 +108,11 @@ if on_nersc:
       tspec = vstack([tspec,tn])
       tf = vstack([tf,tnf])
 
-  tspec_df = tspec['TARGETID','DELTACHI2' ].to_pandas()
-  tf_df = tf['TARGETID','FIBER','FLUX_G','FLUX_R','FLUX_Z','FIBERFLUX_G','FIBERFLUX_R','FIBERFLUX_Z'].to_pandas()
+  tspec_df = tspec['TARGETID','DELTACHI2','ZWARN','ZERR'].to_pandas()
+  tf_df = tf['TARGETID','FIBER','FLUX_G','FLUX_R','FLUX_Z','FIBERFLUX_G','FIBERFLUX_R','FIBERFLUX_Z','MW_TRANSMISSION_G', 'MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z'].to_pandas()
 
-  tf_df = tf_df.rename(columns={"TARGETID": "TargetID"})
-  tspec_df = tspec_df.rename(columns={"TARGETID": "TargetID"})
-
-  vi = vi.merge(tf_df, how='left', on='TargetID')
-  vi = vi.merge(tspec_df, how='left', on='TargetID')
+  vi = vi.merge(tf_df, how='left', on='TARGETID')
+  vi = vi.merge(tspec_df, how='left', on='TARGETID')
 
 
 #----------------------------------------------------------------
@@ -124,64 +124,65 @@ vi.loc[vi['best z']=='--', 'best z'] = vi.loc[vi['best z']=='--', 'Redrock z']
 vi['best z'] = vi['best z'].astype(float)
 
 #add new column to find how much deviation there is in the redshift estimates 
-vi['dz'] = vi.groupby('TargetID')['best z'].transform(lambda x: ( (x.max() - x.min()) / (1+x.min()) ))
+vi['dz'] = vi.groupby('TARGETID')['best z'].transform(lambda x: ( (x.max() - x.min()) / (1+x.min()) ))
 
 #if the deviation is small, fill best redshift with the mean redshift of the VI z (which may be a VI and a Redrock mean if only one VI changed the z)
-vi.loc[vi['dz']< 0.0033,['best z']]=vi.loc[vi['dz']< 0.0033].groupby('TargetID')['best z'].transform('mean')
+vi.loc[vi['dz']< 0.0033,['best z']]=vi.loc[vi['dz']< 0.0033].groupby('TARGETID')['best z'].transform('mean')
 
 #if the deviation is large, fill the best redshift with 999 so the merger has to enter a redshift
 #vi.loc[vi['dz']>=0.0033,['best z']]=999.  # Turned off for now, so it can be used as a default.
-#display(vi[['TargetID','Redrock z','VI z','best z']].sort_values(by=['TargetID']))
+#display(vi[['TARGETID','Redrock z','VI z','best z']].sort_values(by=['TARGETID']))
 
 #make new column with best spectype estimate for each VI - take VI spectype if available, else take Redrock spectype 
 #I am always assuming that the VI redshift, if provided, trumps over the Redrock redshift. 
 vi['best spectype'] = vi['VI spectype']
 vi.loc[vi['best spectype']=='--', 'best spectype'] = vi.loc[vi['best spectype']=='--', 'Redrock spectype']
-#display(vi[['TargetID','Redrock spectype','VI spectype','best spectype']].sort_values(by=['TargetID']))
+#display(vi[['TARGETID','Redrock spectype','VI spectype','best spectype']].sort_values(by=['TARGETID']))
 
 # Tam's edits
 ##make new column with issue flags - concatenate all issue flags from any VI.  We don't check these, we only check these if the VIs conflict for some other reason.
-vi['best issue'] = vi.groupby('TargetID')['VI issue'].transform(lambda x: ''.join(set(list(x))))
-#vi['best issue'] = vi['best issue'].transform(lambda x: ''.join(set(list(x))))
-vi.loc[vi['best issue']!='--', 'best issue'] = vi.loc[vi['best issue']!='--', 'best issue'].transform(lambda x: ''.join(set(list(x))))
-#display(vi[['TargetID','VI issue','best issue']].sort_values(by=['TargetID']))
+vi['all VI issues'] = vi.groupby('TARGETID')['VI issue'].transform(lambda x: ''.join(set(list(x))))
+vi.loc[vi['all VI issues']!='--', 'all VI issues'] = vi.loc[vi['all VI issues']!='--', 'all VI issues'].transform(lambda x: ''.join(set(list(x))-set('-')))
+#display(vi[['TARGETID','VI issue','all VI issues']].sort_values(by=['TARGETID']))
 
 #add new columns, holding the mean of the flags and the maximum difference in flag classification
-vi['best class'] = vi.groupby('TargetID')['VI class'].transform('mean')
+vi['best quality'] = vi.groupby('TARGETID')['VI class'].transform('mean')
 # If the classification difference is too big, give it 999 so it is clear the merger has to assess it
-vi['vi_class_diff'] = vi.groupby('TargetID')['VI class'].transform(lambda x: (x.max()-x.min()))
-vi.loc[vi['vi_class_diff']>1,['best class']]=999
-#display(vi[['TargetID','VI class', 'vi_class_diff','best class']].sort_values(by=['TargetID']))
+vi['vi_class_diff'] = vi.groupby('TARGETID')['VI class'].transform(lambda x: (x.max()-x.min()))
+vi.loc[vi['vi_class_diff']>1,['best quality']]=999
+#display(vi[['TARGETID','VI class', 'vi_class_diff','best quality']].sort_values(by=['TARGETID']))
 
 #add new column, with all comments concatenated
-vi['all VI comments'] = vi.groupby('TargetID')['VI comment'].transform(lambda x: '|'.join(x))
+#vi['all VI comments'] = vi.groupby('TARGETID')['VI comment'].transform(lambda x: '|'.join(x))
+vi['all VI comments'] = vi.groupby('TARGETID')['VI comment'].transform(lambda x: ' '.join(set(list(x))))
+vi.loc[vi['all VI comments']!='--', 'all VI comments'] = vi.loc[vi['all VI comments']!='--', 'all VI comments'].transform(lambda x: x.replace("--",""))
 
 #add new column, with the number of VI inspections for each object
-vi['N_VI'] = vi.groupby('TargetID')['TargetID'].transform('count')
+vi['N_VI'] = vi.groupby('TARGETID')['TARGETID'].transform('count')
 
 #add new column to hold comments from merger if needed
 vi['merger comment'] = 'none'
 
 #check all the new columns (keys) have been added correctly
-#display(vi.sort_values(by=['TargetID']))
+#display(vi.sort_values(by=['TARGETID']))
 #print(vi.keys())
 
 #----------------------------------------------------------------
 # Get a table that holds only the objects that have been inspected more than once, and for which the individual VI classifications differ by 2 or more, or delta z / (1 + z) > 0.0033, or there is disagreement in best spectype (these are the conflicts to resolve)
-vi_gp = vi.groupby(['TargetID'])
+vi_gp = vi.groupby(['TARGETID'])
 vi_conflict = vi_gp.filter(lambda x: ( ( (x['VI class'].max()-x['VI class'].min()) >= 2) 
                        | ( x['dz'].max()>=0.0033 ) 
                        | (not all(i == x['best spectype'].iloc[0] for i in x['best spectype'])) 
-                       #| (not all(i == x['best issue'].iloc[0] for i in x['best issue']))  
+                       #| (not all(i == x['all VI issues'].iloc[0] for i in x['all VI issues']))  
                                      )
-                       & (len(x) >= 2)) #x is a group by TargetID
+                       & (len(x) >= 2)) #x is a group by TARGETID
 
 vi_badspectype = vi_gp.filter(lambda x: ( not (all(i == x['best spectype'].iloc[0] for i in x['best spectype'])) )
-                       & (len(x) >= 2)) #x is a group by TargetIDvi_badspectype
+                       & (len(x) >= 2)) #x is a group by TARGETIDvi_badspectype
 
 
 # Get the target IDs of the problematic objects and display in table form for a quick summary:
-unique_targets = np.unique(vi_conflict['TargetID'].tolist())
+unique_targets = np.unique(vi_conflict['TARGETID'].tolist())
 #print('Targets with problematic VI: ', unique_targets)
 unique_target_csv = str(unique_targets[0])
 for target in unique_targets[1:]:
@@ -195,13 +196,13 @@ print('Total number of conflicts to resolve: ', len(unique_targets))
 # ## This is where I resolve things manually - with care!!
 # ### I think it's better to keep it in a notebook, as typos can be backtracked rather than a single manual edit of a text file
 # 
-# We edit either 'best class', 'best redshift', 'best spectype, or 'best issue' to resolve conflict. At the end, we look for conflicts again and we should find none.
+# We edit either 'best quality', 'best redshift', 'best spectype, or 'all VI issues' to resolve conflict. At the end, we look for conflicts again and we should find none.
 # 
 
 #function to display the conflict in table format and open a prospect window
 def display_conflict(conflict_id):
     #first, remind myself of the problem:
-    display(vi[vi.TargetID==unique_targets[conflict_id]][['TargetID','Redrock spectype','VI spectype','best spectype','Redrock z','VI z','best z','VI class','best class','VI issue','best issue','VI comment','merger comment','VI scanner']])
+    display(vi[vi.TARGETID==unique_targets[conflict_id]][['TARGETID','Redrock spectype','VI spectype','best spectype','Redrock z','VI z','best z','VI class','best quality','VI issue','all VI issues','VI comment','merger comment','VI scanner']])
     #spectra, zcat= utils_specviewer.load_spectra_zcat_from_targets([unique_targets[conflict_id]], tiledir, obs_db)
     # VI interface in notebook
     #plotframes.plotspectra(spectra, zcatalog=zcat, title='Target_select', notebook=True, mask_type='CMX_TARGET',with_vi_widgets=False)
@@ -235,6 +236,7 @@ uselog='n'
 # If a log file exists, read it in:
 if os.path.isfile(log_file):
   log_old= pd.read_csv(log_file, delimiter = ', ', engine='python', comment='#')
+  log_old = log_old.rename(columns={"TargetID": "TARGETID"}) # Temporary for reading in the old log files
   print('Log file:')
   display(log_old)
   nlog=len(log_old['index'])
@@ -242,18 +244,18 @@ if os.path.isfile(log_file):
 
 # Prepare a new log file (this will overwrite the previous one, but a time-stamped copy of the previous one is saved in logs_old directory:
 log=open(log_file,'w')
-log.write('index, TargetID, bestzmerge, bestclassmerge, bestspectypemerge, bestissuemerge, mergercomment\n')
+log.write('index, TARGETID, bestzmerge, bestclassmerge, bestspectypemerge, bestissuemerge, mergercomment\n')
 
 if uselog != 'n':
   while i<nlog: 
-    if unique_targets[i] != log_old.loc[i]['TargetID']:
-      print('WARNING: Log file and current input do not match.  Matching to TargetID anyway.')
-    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best z']         = log_old.loc[i]['bestzmerge']
-    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best class']     = log_old.loc[i]['bestclassmerge']
-    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best spectype']  = log_old.loc[i]['bestspectypemerge']
-    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'best issue']     = log_old.loc[i]['bestissuemerge']
-    vi.loc[vi.TargetID==log_old.loc[i]['TargetID'], 'merger comment'] = log_old.loc[i]['mergercomment']
-    log_text = str(i)+', '+str(log_old.loc[i]['TargetID'])+', '+str(log_old.loc[i]['bestzmerge'])+', '+str(log_old.loc[i]['bestclassmerge'])+', '+log_old.loc[i]['bestspectypemerge']+', '+log_old.loc[i]['bestissuemerge']+', '+log_old.loc[i]['mergercomment']+'\n'
+    if unique_targets[i] != log_old.loc[i]['TARGETID']:
+      print('WARNING: Log file and current input do not match.  Matching to TARGETID anyway.')
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best z']         = log_old.loc[i]['bestzmerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best quality']     = log_old.loc[i]['bestclassmerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best spectype']  = log_old.loc[i]['bestspectypemerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'all VI issues']     = log_old.loc[i]['bestissuemerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'merger comment'] = log_old.loc[i]['mergercomment']
+    log_text = str(i)+', '+str(log_old.loc[i]['TARGETID'])+', '+str(log_old.loc[i]['bestzmerge'])+', '+str(log_old.loc[i]['bestclassmerge'])+', '+log_old.loc[i]['bestspectypemerge']+', '+log_old.loc[i]['bestissuemerge']+', '+log_old.loc[i]['mergercomment']+'\n'
     log.write(log_text)
     i=i+1
   print('Read in log file, with %s entries, continuing from there.'%str(nlog))
@@ -263,7 +265,7 @@ if uselog != 'n':
 while i<len(unique_targets): 
   print('test')
   print("%s/%s"%(i,len(unique_targets)-1))
-  conflict = vi.loc[vi.TargetID==unique_targets[i]]
+  conflict = vi.loc[vi.TARGETID==unique_targets[i]]
   display_conflict(i)
   
   # Fix redshift
@@ -271,7 +273,7 @@ while i<len(unique_targets):
   bestzmerge = float(input("Best z [%s]:"%str(tmp_bestz)) or tmp_bestz)
   
   # Fix class (quality)  #IMPROVEMENT: Make it not crash when someone enters a character
-  tmp_bestclass = conflict.loc[conflict.first_valid_index()]['best class']
+  tmp_bestclass = conflict.loc[conflict.first_valid_index()]['best quality']
   bestclassmerge = float(input("Best quality [%s]:"%str(tmp_bestclass)) or tmp_bestclass)
   while not(0<=bestclassmerge and 4>=bestclassmerge):
     print("Invalid choice. Quality must be between 0 and 4.")
@@ -291,12 +293,12 @@ while i<len(unique_targets):
     bestspectypemerge = choose_spectype(sgq)
 
   # Fix issue
-  tmp_bestissue = conflict.loc[conflict.first_valid_index()]['best issue']
-  bestissue = str(input("Best issue (R=bad z, C=bad spectype, S=bad spectrum, --=no issue) [%s]:"%str(tmp_bestissue)) or 'o')
+  tmp_bestissue = conflict.loc[conflict.first_valid_index()]['all VI issues']
+  bestissue = str(input("all VI issues (R=bad z, C=bad spectype, S=bad spectrum, --=no issue) [%s]:"%str(tmp_bestissue)) or 'o')
   testissue = (issue_match(bestissue) or bestissue=='o')
   while not(testissue):
     print("Invalid choice, please choose R for bad redshift, S for bad spectype, C for bad spectrum, or press enter to accept the default.")
-    bestissue = str(input("Best issue (R=bad z, S=bad spectype, C=bad spectrum) [%s]:"%str(tmp_bestissue)) or 'o')
+    bestissue = str(input("all VI issues (R=bad z, S=bad spectype, C=bad spectrum) [%s]:"%str(tmp_bestissue)) or 'o')
     testissue = (issue_match(bestissue) or bestissue=='o')
   if bestissue == 'o':
     bestissuemerge = tmp_bestissue
@@ -309,11 +311,11 @@ while i<len(unique_targets):
   print("Your results:  %s, %s, %s, %s, %s"%(str(bestzmerge), str(bestclassmerge), bestspectypemerge, bestissuemerge, mergercomment))
   happy = str(input("If you are NOT happy with these choices press n to enter them again, otherwise press any key to continue."))
   if happy != 'n':
-    vi.loc[vi.TargetID==unique_targets[i], 'best z'] = bestzmerge
-    vi.loc[vi.TargetID==unique_targets[i], 'best class'] = bestclassmerge
-    vi.loc[vi.TargetID==unique_targets[i], 'best spectype'] = bestspectypemerge
-    vi.loc[vi.TargetID==unique_targets[i], 'best issue'] = bestissuemerge
-    vi.loc[vi.TargetID==unique_targets[i], 'merger comment'] = mergercomment
+    vi.loc[vi.TARGETID==unique_targets[i], 'best z'] = bestzmerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'best quality'] = bestclassmerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'best spectype'] = bestspectypemerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'all VI issues'] = bestissuemerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'merger comment'] = mergercomment
 
     log_text = str(i)+', '+str(unique_targets[i])+', '+str(bestzmerge)+', '+str(bestclassmerge)+', '+bestspectypemerge+', '+bestissuemerge+', '+mergercomment+'\n'
     print(log_text)
@@ -321,13 +323,13 @@ while i<len(unique_targets):
     print('----------------------------------------------------------------------')
     i=i+1
 
-vi_unique = vi_gp['Redrock z', 'best z', 'best class', 'Redrock spectype', 'best spectype', 'best issue', 'all VI comments', 'merger comment', 'N_VI'].first()
-#print(vi_unique[vi_unique['best class']<2.5]['best class'].transform('count'))
-print((vi_unique.loc[vi_unique['best class']>=2.5,'best class']).count())
-print((vi_unique['best class']).count())
+vi_unique = vi_gp['Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment', 'N_VI'].first()
+#print(vi_unique[vi_unique['best quality']<2.5]['best quality'].transform('count'))
+print((vi_unique.loc[vi_unique['best quality']>=2.5,'best quality']).count())
+print((vi_unique['best quality']).count())
 
-number_of_total_objects = (vi_unique['best class']).count()
-number_of_good_redshifts = (vi_unique.loc[vi_unique['best class']>=2.5,'best class']).count()
+number_of_total_objects = (vi_unique['best quality']).count()
+number_of_good_redshifts = (vi_unique.loc[vi_unique['best quality']>=2.5,'best quality']).count()
 
 print('Completed %s/%s checks out of %s objects (fraction needed checking=%s).'%(i,len(unique_targets),number_of_total_objects,len(unique_targets)/number_of_total_objects))
 print('Resulting in %s/%s strong (>=2.5) redshifts for a success rate of %s.'%(number_of_good_redshifts,number_of_total_objects,number_of_good_redshifts/number_of_total_objects))
@@ -342,32 +344,32 @@ log.close()
 #vi_conflict = vi_gp.filter(lambda x: ( ( (x['VI class'].max()-x['VI class'].min()) >= 2) 
 #                       | ( (x['best redshift'].max() - x['best redshift'].min()) / (1+x['best redshift'].min()) > 0.0033 ) 
 #                       | (not all(i == x['best spectype'].iloc[0] for i in x['best spectype'])) )
-#                       & (len(x) >= 2)) #x is a group by TargetID
+#                       & (len(x) >= 2)) #x is a group by TARGETID
 '''
 vi_conflict_test = vi_gp.filter(lambda x: (all(i == 999 for i in x['best z'])) 
-                               | (all(i==999 for i in x['best class'])) 
+                               | (all(i==999 for i in x['best quality'])) 
                                & (len(x) >= 2) )
 # This doesn't catch best spectype errors
 pd.set_option('display.max_rows', 20)
-display(vi_conflict_test[['TargetID','Redrock z','VI z','best z','dz','best spectype','best issue','best class','vi_class_diff','all VI comments']].sort_values(by=['TargetID']))
+display(vi_conflict_test[['TARGETID','Redrock z','VI z','best z','dz','best spectype','all VI issues','best quality','vi_class_diff','all VI comments']].sort_values(by=['TARGETID']))
 
-unique_targets = np.unique(vi_conflict_test['TargetID'].tolist())
+unique_targets = np.unique(vi_conflict_test['TARGETID'].tolist())
 print('Targets with problematic VI: ', unique_targets)
 print('Total number of conflicts to resolve: ', len(unique_targets))
 
 
 # Display anything that was missed (if "Total number of conflicts" isn't zero) and resolve!
 for i in range(len(unique_targets)): 
-    display(vi[vi.TargetID==unique_targets[i]])
+    display(vi[vi.TARGETID==unique_targets[i]])
 
 
 vi_conflict = vi_gp.filter(lambda x: ( ( (x['VI class'].max()-x['VI class'].min()) >= 2) 
                        | ( (x['best redshift'].max() - x['best redshift'].min()) / (1+x['best redshift'].min()) > 0.0033 ) 
                        | (not all(i == x['best spectype'].iloc[0] for i in x['best spectype'])) )
-                       & (len(x) >= 2)) #x is a group by TargetID
+                       & (len(x) >= 2)) #x is a group by TARGETID
 
 
-unique_targets = np.unique(vi_conflict['TargetID'].tolist())
+unique_targets = np.unique(vi_conflict['TARGETID'].tolist())
 print('Targets with problematic VI: ', unique_targets)
 print('Total number of conflicts to resolve: ', len(unique_targets))
 '''
@@ -376,13 +378,13 @@ print('Total number of conflicts to resolve: ', len(unique_targets))
 
 # ## Now we prepare to write to file. 
 # 
-# ### The important columns for the truth table construction are **best z**, **best class**, **best spectype**, and **best issue**. 
+# ### The important columns for the truth table construction are **best z**, **best quality**, **best spectype**, and **all VI issues**. 
 print('Output to:',output_file)
 print('Log to:',log_file)
 if on_nersc:
-  vi_gp['Redrock z', 'best z', 'best class', 'Redrock spectype', 'best spectype', 'best issue', 'all VI comments', 'merger comment', 'N_VI', 'DELTACHI2','FIBER','FLUX_G','FLUX_R','FLUX_Z','FIBERFLUX_G','FIBERFLUX_R','FIBERFLUX_Z'].first().to_csv(output_file)
+  vi_gp['Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment', 'N_VI', 'DELTACHI2','FIBER','FLUX_G','FLUX_R','FLUX_Z','FIBERFLUX_G','FIBERFLUX_R','FIBERFLUX_Z'].first().to_csv(output_file)
 else:
-  vi_gp['Redrock z', 'best z', 'best class', 'Redrock spectype', 'best spectype', 'best issue', 'all VI comments', 'merger comment', 'N_VI'].first().to_csv(output_file)
+  vi_gp['Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment', 'N_VI'].first().to_csv(output_file)
 
 
 # Check that merged file reads in OK - check comments

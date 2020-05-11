@@ -42,7 +42,7 @@ for i in range(1,len(merged_files)):
 #print(vimerged[['Redrock z', 'best z', 'best class']])
 
 # Print to a combined file
-vimerged[['TARGETID', 'Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment','N_VI','DELTACHI2', 'ZWARN', 'ZERR','FIBER','FLUX_G', 'FLUX_R', 'FLUX_Z','FIBERFLUX_G', 'FIBERFLUX_R', 'FIBERFLUX_Z', 'MW_TRANSMISSION_G','MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z']].to_csv(combined_file,index=False)
+vimerged[['Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment','N_VI','DELTACHI2', 'ZWARN', 'ZERR','FIBER','FLUX_G', 'FLUX_R', 'FLUX_Z','FIBERFLUX_G', 'FIBERFLUX_R', 'FIBERFLUX_Z', 'MW_TRANSMISSION_G','MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z']].to_csv(combined_file,index=False)
 
 vitest = pd.read_csv(combined_file)
 print(vitest)

@@ -5,10 +5,15 @@ import numpy as np
 import pandas as pd
 import fnmatch
 
-merged_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/output/' #dir with vi merged output
+on_nersc = True
+# Set to directory with all the VI files to merge
+if on_nersc:
+  merged_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO/output/'
+else:
+  merged_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/output/'
+
 tiles = ['68002']
-nights = ['20200315'] 
-#subset = "_3_" 
+nights = ['20200315']  
 
 # Read in list of files in merged directory
 all_files = os.listdir(merged_dir)

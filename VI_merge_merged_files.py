@@ -16,7 +16,7 @@ def string_cleaner(tt):
     tt = tt.replace(',',';')
     return tt
 
-on_nersc = False
+on_nersc = True
 # Set to directory with all the VI files to merge
 if on_nersc:
   merged_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO/output/'

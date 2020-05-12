@@ -337,44 +337,6 @@ log.write('# Completed %s/%s checks out of %s objects (fraction needed checking=
 log.write('# Resulting in %s/%s strong (>=2.5) redshifts for a success rate of %s.\n'%(number_of_good_redshifts,number_of_total_objects,number_of_good_redshifts/number_of_total_objects))
 log.close()
 
-# ### and so on...
-# 
-# We should now recompute the conflicts, and not find any.
-
-#vi_conflict = vi_gp.filter(lambda x: ( ( (x['VI class'].max()-x['VI class'].min()) >= 2) 
-#                       | ( (x['best redshift'].max() - x['best redshift'].min()) / (1+x['best redshift'].min()) > 0.0033 ) 
-#                       | (not all(i == x['best spectype'].iloc[0] for i in x['best spectype'])) )
-#                       & (len(x) >= 2)) #x is a group by TARGETID
-'''
-vi_conflict_test = vi_gp.filter(lambda x: (all(i == 999 for i in x['best z'])) 
-                               | (all(i==999 for i in x['best quality'])) 
-                               & (len(x) >= 2) )
-# This doesn't catch best spectype errors
-pd.set_option('display.max_rows', 20)
-display(vi_conflict_test[['TARGETID','Redrock z','VI z','best z','dz','best spectype','all VI issues','best quality','vi_class_diff','all VI comments']].sort_values(by=['TARGETID']))
-
-unique_targets = np.unique(vi_conflict_test['TARGETID'].tolist())
-print('Targets with problematic VI: ', unique_targets)
-print('Total number of conflicts to resolve: ', len(unique_targets))
-
-
-# Display anything that was missed (if "Total number of conflicts" isn't zero) and resolve!
-for i in range(len(unique_targets)): 
-    display(vi[vi.TARGETID==unique_targets[i]])
-
-
-vi_conflict = vi_gp.filter(lambda x: ( ( (x['VI class'].max()-x['VI class'].min()) >= 2) 
-                       | ( (x['best redshift'].max() - x['best redshift'].min()) / (1+x['best redshift'].min()) > 0.0033 ) 
-                       | (not all(i == x['best spectype'].iloc[0] for i in x['best spectype'])) )
-                       & (len(x) >= 2)) #x is a group by TARGETID
-
-
-unique_targets = np.unique(vi_conflict['TARGETID'].tolist())
-print('Targets with problematic VI: ', unique_targets)
-print('Total number of conflicts to resolve: ', len(unique_targets))
-'''
-
-# ## Woohoo!
 
 # ## Now we prepare to write to file. 
 # 

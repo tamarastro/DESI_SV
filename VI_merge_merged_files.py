@@ -5,12 +5,23 @@ import numpy as np
 import pandas as pd
 import fnmatch
 
-on_nersc = True
+
+def string_cleaner(tt):
+    #Clean strings
+    #Remove unicode characters
+    tt = ''.join(i for i in tt if ord(i)<128)
+
+    #Replace commas with semicolons
+    tt = tt.replace('","',';')
+    tt = tt.replace(',',';')
+    return tt
+
+on_nersc = False
 # Set to directory with all the VI files to merge
 if on_nersc:
   merged_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO/output/'
 else:
-  merged_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/output/'
+  merged_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/output/'  
 
 tiles = ['68002']
 nights = ['20200315']  
@@ -36,6 +47,11 @@ for i in range(1,len(merged_files)):
     print(merged_files[i])
     vi2 = pd.read_csv(merged_dir + merged_files[i], delimiter = ",", engine='python')
     vimerged = vimerged.append(vi2, ignore_index=True)
+
+
+# Get rid of evil characters
+vimerged['all VI comments'] = vimerged['all VI comments'].apply(string_cleaner)
+vimerged['merger comment'] = vimerged['merger comment'].apply(string_cleaner)
 
 #for i in np.arange(len(vimerged['TARGETID'])):
 #  print(vimerged.loc[i]['all VI comments'])

@@ -116,7 +116,7 @@ if not os.path.exists(output_dir):
 
 # Set this to True if you want to do a batch job!  
 # This will ignore the vi file you enter as VI_file above, but uses the directories and truth table.
-Compare_Everything_In_Directory = True
+Compare_Everything_In_Directory = False
 
 
 # Note, the compare everything in directory option is fragile... requires you to set the pattern you want below.

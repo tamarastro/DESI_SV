@@ -4,6 +4,7 @@
 import os, sys, glob
 import fnmatch
 import re
+from astropy.table import Table, join, vstack
 import pandas as pd
 
 def choose_best_z(vi):

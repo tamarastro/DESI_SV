@@ -216,7 +216,7 @@ log.close()
 print('\nOutput to:',output_file)
 print('Log to:',log_file)
 if on_nersc:
-  print_merged_file(vi_gp)
+  print_merged_file(vi_gp,output_file)
 else:
   vi_gp['Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment', 'N_VI'].first().to_csv(output_file)
 

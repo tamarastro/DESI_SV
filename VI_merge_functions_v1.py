@@ -40,6 +40,7 @@ def concatenate_all_comments(vi):
   #add new column, with all comments concatenated
   vi['all VI comments'] = vi.groupby('TARGETID')['VI comment'].transform(lambda x: ' '.join(set(list(x))))
   vi.loc[vi['all VI comments']!='--', 'all VI comments'] = vi.loc[vi['all VI comments']!='--', 'all VI comments'].transform(lambda x: x.replace("--",""))
+  vi['all VI comments'] = vi['all VI comments'].transform(lambda x: x.strip())
 
 def add_extra_details(vi):
   #add new column, with the number of VI inspections for each object

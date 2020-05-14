@@ -72,6 +72,9 @@ def compare_vi(VI_dir,VI_file,VI_truth_file,output_dir):
 
   i_disagree_all = i_disagree_class | i_disagree_z | i_disagree_spectype
   i_disagree_good = i_disagree_z & i_good_z
+
+  #----------------
+  # PRINT TO SCREEN
   print('\nOut of %s objects, you disagreed with the merged results on %s redshifts, %s qualities, and %s spectypes.'%(len(g['TARGETID']),sum(i_disagree_z),sum(i_disagree_class),sum(i_disagree_spectype)))
   print('\nNumber of redshift disagreements on high-quality redshifts = %s.'%sum(i_disagree_good))
   print('\nTotal number of disagreements = %s.'%sum(i_disagree_all))
@@ -80,14 +83,26 @@ def compare_vi(VI_dir,VI_file,VI_truth_file,output_dir):
   conflicts = ''
   for target in g['TARGETID'][i_disagree_all]:
     conflicts = conflicts+', '+str(target)
-  print('\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_TARGETID.ipynb/ and cutting and pasting the following target list:')
+  print('\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_TARGETID.ipynb and cutting and pasting the following target list:')
   print(conflicts[2:])
 
+  #-----------------------
+  # WRITE TO FILE AND PLOT
+  summaryfile = open(output_dir+VI_base+'_results.txt', "w") ####### PRINT OUTPUT TO FILE ########
+  summaryfile.write('\nOut of %s objects, you disagreed with the merged results on %s redshifts, %s qualities, and %s spectypes.'%(len(g['TARGETID']),sum(i_disagree_z),sum(i_disagree_class),sum(i_disagree_spectype)))
+  summaryfile.write('\nNumber of redshift disagreements on high-quality redshifts = %s.'%sum(i_disagree_good))
+  summaryfile.write('\nTotal number of disagreements = %s.\n'%sum(i_disagree_all))
+  #gd=g[i_disagree_all]
+  g[['TARGETID','best z','VI z','best quality','VI class','best spectype','VI spectype']][i_disagree_all].to_string(summaryfile)
+  summaryfile.write('\n\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_TARGETID.ipynb and cutting and pasting the following target list:\n')
+  summaryfile.write(conflicts[2:])
+  summaryfile.close()
   # Plot VI z vs Merged z and colour by Quality
   plot_scatter_colors(g['best z'],g['VI z'],g['best quality'],[0.0,4.0],'Best z','VI z','Quality (4 is good)',output_dir+VI_base+'_z.png',iextra=i_disagree_good,annotation='# of z disagreements on high-quality z: %s'%sum(i_disagree_good))
   plot_histogram(g['best quality'],np.arange(11)/2.-0.25,'Quality','Number of cases',output_dir+VI_base+'_quality.png',comp=g['VI class'],annotation='Blue=Merged VI; Orange=Single VI')
 
 
+#------------------------------------------------------------------
 # Read in truth table (or any output file you'd like to compare to)
 #VI_truth_file = '/global/cfs/cdirs/desi/sv/vi/TruthTables/truth_table_QSO_tile68002_night20200315.csv'
 VI_truth_file  = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/output/desi-vi_SV0_QSO_tile68002_night20200315_1_merged.csv'
@@ -101,7 +116,7 @@ if not os.path.exists(output_dir):
 
 # Set this to True if you want to do a batch job!  
 # This will ignore the vi file you enter as VI_file above, but uses the directories and truth table.
-Compare_Everything_In_Directory = False
+Compare_Everything_In_Directory = True
 
 
 # Note, the compare everything in directory option is fragile... requires you to set the pattern you want below.

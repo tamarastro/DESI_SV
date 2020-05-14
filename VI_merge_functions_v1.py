@@ -129,7 +129,7 @@ def print_conflicts_for_prospect(unique_targets):
   print('Targets with problematic VI: ', unique_target_csv)
   print('Total number of conflicts to resolve: ', len(unique_targets))
 
-def print_merged_file(vi_gp):
+def print_merged_file(vi_gp,output_file):
 	vi_gp['Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment','N_VI','DELTACHI2', 'ZWARN', 'ZERR','FIBER','FLUX_G', 'FLUX_R', 'FLUX_Z','FIBERFLUX_G', 'FIBERFLUX_R', 'FIBERFLUX_Z', 'MW_TRANSMISSION_G','MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z'].first().to_csv(output_file)
 
 if __name__ == "__main__":

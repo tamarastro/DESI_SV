@@ -24,7 +24,7 @@ tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
 tiles = ['68002']
 nights = ['20200315']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
-subset = "_2_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
+subset = "_19_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below
 output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
 
 on_nersc = True

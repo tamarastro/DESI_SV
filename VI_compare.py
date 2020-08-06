@@ -10,7 +10,7 @@ import argparse
 #-------------------------------------------------------------------------------------------------------
 # USER DEFINED INPUTS
 
-VI_truth_file = '/global/cfs/cdirs/desi/sv/vi/TruthTables/truth_table_QSO_tile68002_night20200315.csv'
+VI_truth_file = '/global/cfs/cdirs/desi/sv/vi/TruthTables/truth_table_QSO_v1.2.csv'
 #VI_truth_file  = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/output/desi-vi_SV0_QSO_tile68002_night20200315_1_merged.csv'
 
 # Define the VI file you want to compare, and the directory you find it in, and the output directory you want to send it to

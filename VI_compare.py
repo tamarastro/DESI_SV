@@ -140,9 +140,11 @@ def compare_vi(VI_dir,VI_file,VI_truth_file,output_dir,oldvi='False',oldtruth='F
   summaryfile.write('\n\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_targetid.ipynb in JupyterLab on NERSC (instructions here https://desi.lbl.gov/trac/wiki/Computing/JupyterAtNERSC) and cutting and pasting the following target list:\n')
   summaryfile.write(conflicts[2:])
   summaryfile.close()
+ 
   # Plot VI_z vs Merged z and colour by Quality
-  plot_scatter_colors(g['best_z'],g['VI_z'],g['best_quality'],[0.0,4.0],'best_z','VI_z','Quality (4 is good)',output_dir+VI_base+'_z.png',iextra=i_disagree_good,annotation='# of z disagreements on high-quality z: %s'%sum(i_disagree_good))
-  plot_histogram(g['best_quality'],np.arange(11)/2.-0.25,'Quality','Number of cases',output_dir+VI_base+'_quality.png',comp=g['VI_quality'],annotation='Blue=Merged VI; Orange=Single VI')
+  # Comment out if on NERSC because it doesn't do plotting
+  #plot_scatter_colors(g['best_z'],g['VI_z'],g['best_quality'],[0.0,4.0],'best_z','VI_z','Quality (4 is good)',output_dir+VI_base+'_z.png',iextra=i_disagree_good,annotation='# of z disagreements on high-quality z: %s'%sum(i_disagree_good))
+  #plot_histogram(g['best_quality'],np.arange(11)/2.-0.25,'Quality','Number of cases',output_dir+VI_base+'_quality.png',comp=g['VI_quality'],annotation='Blue=Merged VI; Orange=Single VI')
 
 
 #------------------------------------------------------------------

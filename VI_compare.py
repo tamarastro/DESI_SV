@@ -23,7 +23,7 @@ output_dir = VI_dir+'VI_check/'  # The directory in which we'll put the output. 
 # This will ignore the vi file you enter as VI_file above, but uses the directories and truth table.
 Compare_Everything_In_Directory = False
 # If you only want to choose a subset of the files in that directory to do the batch job on, set the pattern here that the program will search for.
-subset = '_1_'  # Set to '' to do all the desi*csv files in the VI_dir.
+subset = ''#'_1_'  # Set to '' to do all the desi*csv files in the VI_dir.
 pattern = "desi*"+subset+"*.csv"
 
 # If you're using files from the first round of VI they have a different format and need to be converted, so say 'True' to these:
@@ -126,7 +126,7 @@ def compare_vi(VI_dir,VI_file,VI_truth_file,output_dir,oldvi='False',oldtruth='F
   conflicts = ''
   for target in g['TARGETID'][i_disagree_all]:
     conflicts = conflicts+', '+str(target)
-  print('\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_TARGETID.ipynb and cutting and pasting the following target list:')
+  print('\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_targetid.ipynb in JupyterLab on NERSC (instructions here https://desi.lbl.gov/trac/wiki/Computing/JupyterAtNERSC) and cutting and pasting the following target list:')
   print(conflicts[2:])
 
   #-----------------------
@@ -137,7 +137,7 @@ def compare_vi(VI_dir,VI_file,VI_truth_file,output_dir,oldvi='False',oldtruth='F
   summaryfile.write('\nTotal number of disagreements = %s.\n'%sum(i_disagree_all))
   #gd=g[i_disagree_all]
   g[['TARGETID','best_z','VI_z','best_quality','VI_quality','best_spectype','VI_spectype']][i_disagree_all].to_string(summaryfile)
-  summaryfile.write('\n\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_TARGETID.ipynb and cutting and pasting the following target list:\n')
+  summaryfile.write('\n\nLook at your disagreements by opening the Prospect notebook viewer https://github.com/desihub/prospect/blob/master/doc/nb/Prospect_targetid.ipynb in JupyterLab on NERSC (instructions here https://desi.lbl.gov/trac/wiki/Computing/JupyterAtNERSC) and cutting and pasting the following target list:\n')
   summaryfile.write(conflicts[2:])
   summaryfile.close()
   # Plot VI_z vs Merged z and colour by Quality

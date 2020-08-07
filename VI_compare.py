@@ -21,7 +21,7 @@ output_dir = VI_dir+'VI_check/'  # The directory in which we'll put the output. 
 
 # Set Compare_Everything_In_Directory to True if you want to do a batch job!  
 # This will ignore the vi file you enter as VI_file above, but uses the directories and truth table.
-Compare_Everything_In_Directory = False
+Compare_Everything_In_Directory = True
 # If you only want to choose a subset of the files in that directory to do the batch job on, set the pattern here that the program will search for.
 subset = ''#'_1_'  # Set to '' to do all the desi*csv files in the VI_dir.
 pattern = "desi*"+subset+"*.csv"

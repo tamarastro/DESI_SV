@@ -16,7 +16,7 @@ from datetime import datetime
 from pytz import timezone
 from VI_merge_functions_v1 import *
 
-on_nersc = True
+on_nersc = False
 if on_nersc:
   import desispec.io
   import desispec

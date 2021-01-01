@@ -16,7 +16,7 @@ from datetime import datetime
 from pytz import timezone
 from VI_merge_functions_v1 import *
 
-on_nersc = False
+on_nersc = True
 if on_nersc:
   import desispec.io
   import desispec
@@ -35,7 +35,7 @@ tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
 tiles = ['68002']
 nights = ['20200315']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
-subset = "_2_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below.  Set to "" to use all.
+subset = "_1_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below.  Set to "" to use all.
 #output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
 output_name = "desi-vi_QSO_reinspection_"+tiles[0]+"_"+subset+"merged"
 
@@ -50,7 +50,7 @@ log_file = VI_dir+'output/'+output_name+'.log'
 # Read in all the data and combine the files ready for merging
 #--------------------------------------------------------------------------------------------------
 # Read in the data
-vi = read_in_data(VI_dir,subset)
+vi = read_in_data(VI_dir,tile,subset)
 
 #make groups of visual inspections, grouped by unique objects, and state number of single and multiple VIs
 vi_gp = vi.groupby(['TARGETID'])

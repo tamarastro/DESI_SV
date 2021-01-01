@@ -49,13 +49,13 @@ def add_extra_details(vi):
   #add new column to hold comments from merger if needed
   vi['merger comment'] = 'none'
 
-def read_in_data(VI_dir,subset):
+def read_in_data(VI_dir,tile,subset):
   # We will read all the *.csv files in this directory. Change as needed.
   all_files = os.listdir(VI_dir)
   vi_files=[]
 
   # Choose a subset
-  pattern = "desi*"+subset+"*.csv"
+  pattern = "desi*"+tile+"*"+subset+"*.csv"
   for entry in all_files:
     if fnmatch.fnmatch(entry, pattern):
       vi_files.append(entry)
@@ -76,7 +76,7 @@ def read_in_data(VI_dir,subset):
       vi = vi.append(vi2, ignore_index=True)
       
   # Change the column name to TARGETID to match standards elsewhere in DESI.
-  vi = vi.rename(columns={"TargetID": "TARGETID"})
+  #vi = vi.rename(columns={"TargetID": "TARGETID"})
   return vi
 
 def add_auxiliary_data(vi,tiledir,tiles,nights,petals):

@@ -9,36 +9,39 @@ import pandas as pd
 
 def choose_best_z(vi):
   #make new column with best redshift estimate for each VI - take VI redshift if available, else take Redrock redshift. 
-  vi['best z'] = vi['VI z']
-  vi.loc[vi['best z']=='--', 'best z'] = vi.loc[vi['best z']=='--', 'Redrock z']
+  print(vi['VI_z'])
+  vi['best z'] = vi['VI_z']
+  #vi.loc[vi['best z']=='--', 'best z'] = vi.loc[vi['best z']=='--', 'Redrock_z']
+  vi.loc[vi['best z']=='', 'best z'] = vi.loc[vi['best z']=='', 'Redrock_z']
+  print(vi['best z'])
   vi['best z'] = vi['best z'].astype(float)
 
   #add new column to find how much deviation there is in the redshift estimates 
   vi['dz'] = vi.groupby('TARGETID')['best z'].transform(lambda x: ( (x.max() - x.min()) / (1+x.min()) ))
 
-  #if the deviation is small, fill best redshift with the mean redshift of the VI z (which may be a VI and a Redrock mean if only one VI changed the z)
+  #if the deviation is small, fill best redshift with the mean redshift of the VI_z (which may be a VI and a Redrock mean if only one VI changed the z)
   vi.loc[vi['dz']< 0.0033,['best z']]=vi.loc[vi['dz']< 0.0033].groupby('TARGETID')['best z'].transform('mean')
 
 def choose_best_spectype(vi):
-  #make new column with best spectype estimate for each VI - take VI spectype if available, else take Redrock spectype 
-  vi['best spectype'] = vi['VI spectype']
-  vi.loc[vi['best spectype']=='--', 'best spectype'] = vi.loc[vi['best spectype']=='--', 'Redrock spectype']
+  #make new column with best spectype estimate for each VI - take VI_spectype if available, else take Redrock_spectype 
+  vi['best spectype'] = vi['VI_spectype']
+  vi.loc[vi['best spectype']=='--', 'best spectype'] = vi.loc[vi['best spectype']=='--', 'Redrock_spectype']
 
 def choose_best_quality(vi):
   #add new columns, holding the mean of the flags and the maximum difference in flag classification
-  vi['best quality'] = vi.groupby('TARGETID')['VI class'].transform('mean')
+  vi['best quality'] = vi.groupby('TARGETID')['VI_quality'].transform('mean')
   # If the classification difference is too big, give it 999 so it is clear the merger has to assess it
-  vi['vi_class_diff'] = vi.groupby('TARGETID')['VI class'].transform(lambda x: (x.max()-x.min()))
+  vi['vi_class_diff'] = vi.groupby('TARGETID')['VI_quality'].transform(lambda x: (x.max()-x.min()))
   vi.loc[vi['vi_class_diff']>1,['best quality']]=999
 
 def concatenate_all_issues(vi):
   ##make new column with issue flags - concatenate all issue flags from any VI.  We don't check these, we only check these if the VIs conflict for some other reason.
-  vi['all VI issues'] = vi.groupby('TARGETID')['VI issue'].transform(lambda x: ''.join(set(list(x))))
+  vi['all VI issues'] = vi.groupby('TARGETID')['VI_issue'].transform(lambda x: ''.join(set(list(x))))
   vi.loc[vi['all VI issues']!='--', 'all VI issues'] = vi.loc[vi['all VI issues']!='--', 'all VI issues'].transform(lambda x: ''.join(set(list(x))-set('-')))
 
 def concatenate_all_comments(vi):
   #add new column, with all comments concatenated
-  vi['all VI comments'] = vi.groupby('TARGETID')['VI comment'].transform(lambda x: ' '.join(set(list(x))))
+  vi['all VI comments'] = vi.groupby('TARGETID')['VI_comment'].transform(lambda x: ' '.join(set(list(x))))
   vi.loc[vi['all VI comments']!='--', 'all VI comments'] = vi.loc[vi['all VI comments']!='--', 'all VI comments'].transform(lambda x: x.replace("--",""))
   vi['all VI comments'] = vi['all VI comments'].transform(lambda x: x.strip())
 
@@ -67,12 +70,12 @@ def read_in_data(VI_dir,tile,subset):
   # Read the first file in to vi to set up vi
   print('VI Files:')
   print(vi_files[0])
-  vi = pd.read_csv(VI_dir + vi_files[0], delimiter = " , ", engine='python')
+  vi = pd.read_csv(VI_dir + vi_files[0], delimiter = ",", engine='python', keep_default_na=False)
 
   # Read in the rest of the files and append them to vi
   for i in range(1,len(vi_files)):
       print(vi_files[i])
-      vi2 = pd.read_csv(VI_dir + vi_files[i], delimiter = " , ", engine='python')
+      vi2 = pd.read_csv(VI_dir + vi_files[i], delimiter = ",", engine='python', keep_default_na=False)
       vi = vi.append(vi2, ignore_index=True)
       
   # Change the column name to TARGETID to match standards elsewhere in DESI.
@@ -98,7 +101,7 @@ def add_auxiliary_data(vi,tiledir,tiles,nights,petals):
 def find_conflicts(vi_gp):
   # Choose spectra where VI has disagreed
   vi_conflict = vi_gp.filter(lambda x: (                      #x is a group by TARGETID
-    ( ( x['VI class'].max()-x['VI class'].min()) >= 2     )   # Quality differs by 2 or more.
+    ( ( x['VI_quality'].max()-x['VI_quality'].min()) >= 2     )   # Quality differs by 2 or more.
     | ( x['dz'].max()                            >=0.0033 )   # Redshift difference is >=0.0033 (approx 1000km/s at low-z).
     | ( not all(i == x['best spectype'].iloc[0] for i in x['best spectype']) )  # Best spectype differs.
     )
@@ -107,7 +110,7 @@ def find_conflicts(vi_gp):
 
 def print_conflict(conflict_id):
   #function to display the conflict in table format and open a prospect window
-  print(vi[vi.TARGETID==unique_targets[conflict_id]][['TARGETID','Redrock spectype','VI spectype','best spectype','Redrock z','VI z','best z','VI class','best quality','VI issue','all VI issues','VI comment','merger comment','VI scanner']])
+  print(vi[vi.TARGETID==unique_targets[conflict_id]][['TARGETID','Redrock_spectype','VI_spectype','best spectype','Redrock_z','VI_z','best z','VI_quality','best quality','VI_issue','all VI issues','VI_comment','merger comment','VI scanner']])
 
 def choose_spectype(argument):
   switcher = {
@@ -131,7 +134,7 @@ def print_conflicts_for_prospect(unique_targets):
   print('Total number of conflicts to resolve: ', len(unique_targets))
 
 def print_merged_file(vi_gp,output_file):
-	vi_gp['Redrock z', 'best z', 'best quality', 'Redrock spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment','N_VI','DELTACHI2', 'ZWARN', 'ZERR','FIBER','FLUX_G', 'FLUX_R', 'FLUX_Z','FIBERFLUX_G', 'FIBERFLUX_R', 'FIBERFLUX_Z', 'MW_TRANSMISSION_G','MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z'].first().to_csv(output_file)
+	vi_gp['Redrock_z', 'best z', 'best quality', 'Redrock_spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment','N_VI','DELTACHI2', 'ZWARN', 'ZERR','FIBER','FLUX_G', 'FLUX_R', 'FLUX_Z','FIBERFLUX_G', 'FIBERFLUX_R', 'FIBERFLUX_Z', 'MW_TRANSMISSION_G','MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z'].first().to_csv(output_file)
 
 if __name__ == "__main__":
 	print('What a cool program.')

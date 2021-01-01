@@ -51,8 +51,6 @@ log_file = VI_dir+'output/'+output_name+'.log'
 #--------------------------------------------------------------------------------------------------
 # Read in the data
 vi = read_in_data(VI_dir,tiles[0],subset)
-print(vi.columns.values[0])
-exit()
 
 #make groups of visual inspections, grouped by unique objects, and state number of single and multiple VIs
 vi_gp = vi.groupby(['TARGETID'])

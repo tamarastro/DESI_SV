@@ -50,7 +50,7 @@ log_file = VI_dir+'output/'+output_name+'.log'
 # Read in all the data and combine the files ready for merging
 #--------------------------------------------------------------------------------------------------
 # Read in the data
-vi = read_in_data(VI_dir,tile,subset)
+vi = read_in_data(VI_dir,tiles[0],subset)
 
 #make groups of visual inspections, grouped by unique objects, and state number of single and multiple VIs
 vi_gp = vi.groupby(['TARGETID'])

@@ -26,9 +26,9 @@ if on_nersc:
 #--------------------------------------------------------------------------------------------------
 if on_nersc:  
   # Set to directory with all the VI files to merge
-  VI_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO/'
+  VI_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO_Andes/'
 else:
-  VI_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO/'
+  VI_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO_Andes/'
 
 # Here you need to choose the tiles on which your objects were observed
 tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
@@ -36,7 +36,8 @@ tiles = ['68002']
 nights = ['20200315']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
 subset = "_2_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below.  Set to "" to use all.
-output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
+#output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
+output_name = "desi-vi_QSO_reinspection_"+tiles[0]+"_"+subset+"merged"
 
 # Prep the output files
 output_file = VI_dir+'output/'+output_name+'.csv'

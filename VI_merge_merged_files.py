@@ -41,14 +41,14 @@ print(combined_file)
 
 # Read the first file in to vi to set up vi
 print(merged_files[0])
-vimerged = pd.read_csv(merged_dir + merged_files[0], delimiter = ",", engine='python')
+vimerged = pd.read_csv(merged_dir + merged_files[0], delimiter = ",", engine='python',keep_default_na=False)
 # Read in the rest of the files and append them to vi
 for i in range(1,len(merged_files)):
     print(merged_files[i])
-    vi2 = pd.read_csv(merged_dir + merged_files[i], delimiter = ",", engine='python')
+    vi2 = pd.read_csv(merged_dir + merged_files[i], delimiter = ",", engine='python',keep_default_na=False)
     vimerged = vimerged.append(vi2, ignore_index=True)
 
-
+print(vimerged['all VI comments'])
 # Get rid of evil characters
 vimerged['all VI comments'] = vimerged['all VI comments'].apply(string_cleaner)
 vimerged['merger comment'] = vimerged['merger comment'].apply(string_cleaner)
@@ -60,5 +60,5 @@ vimerged['merger comment'] = vimerged['merger comment'].apply(string_cleaner)
 # Print to a combined file
 vimerged[['TARGETID','Redrock_z', 'best z', 'best quality', 'Redrock_spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment','N_VI','DELTACHI2', 'ZWARN', 'ZERR','FIBER','FLUX_G', 'FLUX_R', 'FLUX_Z','FIBERFLUX_G', 'FIBERFLUX_R', 'FIBERFLUX_Z', 'MW_TRANSMISSION_G','MW_TRANSMISSION_R', 'MW_TRANSMISSION_Z']].to_csv(combined_file,index=False)
 
-vitest = pd.read_csv(combined_file)
+vitest = pd.read_csv(combined_file,keep_default_na=False)
 print(vitest)

@@ -15,8 +15,9 @@ import re
 from datetime import datetime
 from pytz import timezone
 from VI_merge_functions_v2 import *
+pd.options.display.max_colwidth = 150
 
-on_nersc = True 
+on_nersc = False 
 if on_nersc:
   import desispec.io
   import desispec
@@ -26,18 +27,17 @@ if on_nersc:
 #--------------------------------------------------------------------------------------------------
 if on_nersc:  
   # Set to directory with all the VI files to merge
-  VI_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO_Andes/'
+  VI_dir = os.environ['HOME']+'/SV/VI_files/SV0/Blanc/QSO/'
 else:
-  VI_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO_Andes/'
+  VI_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/Blanc/BGS/'
 
 # Here you need to choose the tiles on which your objects were observed
 tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
-tiles = ['68002']
-nights = ['20200315']
+tiles = ['80613']
+nights = ['20201215']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
-subset = "_9_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below.  Set to "" to use all.
-#output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
-output_name = "desi-vi_QSO_reinspection_"+tiles[0]+subset+"merged"
+subset = "_2_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below.  Set to "" to use all.
+output_name = "desi-vi_BGS_tile"+tiles[0]+"_nightdeep"+subset+"merged"
 
 # Prep the output files
 output_file = VI_dir+'output/'+output_name+'.csv'
@@ -64,7 +64,7 @@ if on_nersc:
   vi = add_auxiliary_data(vi,tiledir,tiles,nights,petals)
 
 #----------------------------------------------------------------
-# ### Adding useful columns.  Automatically decide on best z, spectype, and quality where possible.  Concatenate issues and comments.
+# ### Adding useful columns.  Automatically decide on best_z, spectype, and quality where possible.  Concatenate issues and comments.
 choose_best_z(vi)
 choose_best_spectype(vi)
 choose_best_quality(vi)
@@ -76,7 +76,7 @@ add_extra_details(vi)
 print(vi.keys())
 
 #----------------------------------------------------------------
-# Get a table that holds only the objects that have been inspected more than once, and for which the individual VI classifications differ by 2 or more, or delta z / (1 + z) > 0.0033, or there is disagreement in best spectype (these are the conflicts to resolve)
+# Get a table that holds only the objects that have been inspected more than once, and for which the individual VI classifications differ by 2 or more, or delta z / (1 + z) > 0.0033, or there is disagreement in best_spectype (these are the conflicts to resolve)
 vi_gp = vi.groupby(['TARGETID'])
 vi_conflict = find_conflicts(vi_gp)
 
@@ -88,7 +88,7 @@ print_conflicts_for_prospect(unique_targets)
 #----------------------------------------------------------------
 # ## Resolve conflicts manually
 #----------------------------------------------------------------
-# We edit either 'best quality', 'best redshift', 'best spectype, or 'all VI issues' to resolve conflict. At the end, we look for conflicts again and we should find none.
+# We edit either 'best_quality', 'best redshift', 'best_spectype, or 'all_VI_issues' to resolve conflict. At the end, we look for conflicts again and we should find none.
 
 print('-----------------------------------------------------------------')
 print('Ready to do some merging?  Default values are in square brackets.')
@@ -124,11 +124,11 @@ if uselog != 'n':
   while i<nlog: 
     if unique_targets[i] != log_old.loc[i]['TARGETID']:
       print('WARNING: Log file and current input do not match.  Matching to TARGETID anyway.')
-    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best z']         = log_old.loc[i]['bestzmerge']
-    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best quality']   = log_old.loc[i]['bestclassmerge']
-    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best spectype']  = log_old.loc[i]['bestspectypemerge']
-    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'all VI issues']  = log_old.loc[i]['bestissuemerge']
-    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'merger comment'] = log_old.loc[i]['mergercomment']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best_z']         = log_old.loc[i]['bestzmerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best_quality']   = log_old.loc[i]['bestclassmerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'best_spectype']  = log_old.loc[i]['bestspectypemerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'all_VI_issues']  = log_old.loc[i]['bestissuemerge']
+    vi.loc[vi.TARGETID==log_old.loc[i]['TARGETID'], 'merger_comment'] = log_old.loc[i]['mergercomment']
     log_text = str(i)+', '+str(log_old.loc[i]['TARGETID'])+', '+str(log_old.loc[i]['bestzmerge'])+', '+str(log_old.loc[i]['bestclassmerge'])+', '+log_old.loc[i]['bestspectypemerge']+', '+log_old.loc[i]['bestissuemerge']+', '+log_old.loc[i]['mergercomment']+'\n'
     log.write(log_text)
     i=i+1
@@ -144,23 +144,23 @@ while i<len(unique_targets):
   print_conflict(vi,unique_targets,i)
   
   # Fix redshift
-  tmp_bestz = conflict.loc[conflict.first_valid_index()]['best z']
-  bestzmerge = float(input("Best z [%s]:"%str(tmp_bestz)) or tmp_bestz)
+  tmp_bestz = conflict.loc[conflict.first_valid_index()]['best_z']
+  bestzmerge = float(input("best_z [%s]:"%str(tmp_bestz)) or tmp_bestz)
   
   # Fix class (quality)  #IMPROVEMENT NEEDED: Make it not crash when someone enters a character
-  tmp_bestclass = conflict.loc[conflict.first_valid_index()]['best quality']
-  bestclassmerge = float(input("Best quality [%s]:"%str(tmp_bestclass)) or tmp_bestclass)
+  tmp_bestclass = conflict.loc[conflict.first_valid_index()]['best_quality']
+  bestclassmerge = float(input("best_quality [%s]:"%str(tmp_bestclass)) or tmp_bestclass)
   while not(0<=bestclassmerge and 4>=bestclassmerge):
     print("Invalid choice. Quality must be between 0 and 4.")
-    bestclassmerge = float(input("Best quality [%s]:"%str(tmp_bestclass)) or tmp_bestclass)
+    bestclassmerge = float(input("best_quality [%s]:"%str(tmp_bestclass)) or tmp_bestclass)
 
   # Fix spectype
-  tmp_bestspectype = conflict.loc[conflict.first_valid_index()]['best spectype']
-  sgq = str(input("Best spectype (s,g,q) [%s]:"%str(tmp_bestspectype)) or 'o')
+  tmp_bestspectype = conflict.loc[conflict.first_valid_index()]['best_spectype']
+  sgq = str(input("best_spectype (s,g,q) [%s]:"%str(tmp_bestspectype)) or 'o')
   testchoice = (sgq=='s' or sgq=='g' or sgq=='q' or sgq=='o')
   while not(testchoice):
     print("Invalid choice, please choose s for STAR, g for GALAXY, q for QSO, or press enter to accept the default.")
-    sgq = str(input("Best spectype (s,g,q) [%s]:"%str(tmp_bestspectype)) or 'o') 
+    sgq = str(input("best_spectype (s,g,q) [%s]:"%str(tmp_bestspectype)) or 'o') 
     testchoice = (sgq=='s' or sgq=='g' or sgq=='q' or sgq=='o')
   if sgq == 'o':
     bestspectypemerge = tmp_bestspectype
@@ -168,12 +168,12 @@ while i<len(unique_targets):
     bestspectypemerge = choose_spectype(sgq)
 
   # Fix issue
-  tmp_bestissue = conflict.loc[conflict.first_valid_index()]['all VI issues']
-  bestissue = str(input("all VI issues (R=bad z, C=bad spectype, S=bad spectrum, N=no issue) [%s]:"%str(tmp_bestissue)) or 'o')
+  tmp_bestissue = conflict.loc[conflict.first_valid_index()]['all_VI_issues']
+  bestissue = str(input("all_VI_issues (R=bad z, C=bad spectype, S=bad spectrum, N=no issue) [%s]:"%str(tmp_bestissue)) or 'o')
   testissue = (issue_match(bestissue) or bestissue=='o')
   while not(testissue):
     print("Invalid choice, please choose R for bad redshift, S for bad spectype, C for bad spectrum, N to report no issue, or press enter to accept the default.")
-    bestissue = str(input("all VI issues (R=bad z, S=bad spectype, C=bad spectrum) [%s]:"%str(tmp_bestissue)) or 'o')
+    bestissue = str(input("all_VI_issues (R=bad z, S=bad spectype, C=bad spectrum) [%s]:"%str(tmp_bestissue)) or 'o')
     testissue = (issue_match(bestissue) or bestissue=='o')
   if bestissue == 'N':
     bestissue = ''
@@ -183,16 +183,16 @@ while i<len(unique_targets):
     bestissuemerge = bestissue
 
   # Add comment
-  mergercomment = str(input("Merger comment:") or 'None')
+  mergercomment = str(input("merger_comment:") or 'None')
 
   print("Your results:  %s, %s, %s, %s, %s"%(str(bestzmerge), str(bestclassmerge), bestspectypemerge, bestissuemerge, mergercomment))
   happy = str(input("If you are NOT happy with these choices press n to enter them again, otherwise press any key to continue."))
   if happy != 'n':
-    vi.loc[vi.TARGETID==unique_targets[i], 'best z'] = bestzmerge
-    vi.loc[vi.TARGETID==unique_targets[i], 'best quality'] = bestclassmerge
-    vi.loc[vi.TARGETID==unique_targets[i], 'best spectype'] = bestspectypemerge
-    vi.loc[vi.TARGETID==unique_targets[i], 'all VI issues'] = bestissuemerge
-    vi.loc[vi.TARGETID==unique_targets[i], 'merger comment'] = mergercomment
+    vi.loc[vi.TARGETID==unique_targets[i], 'best_z'] = bestzmerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'best_quality'] = bestclassmerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'best_spectype'] = bestspectypemerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'all_VI_issues'] = bestissuemerge
+    vi.loc[vi.TARGETID==unique_targets[i], 'merger_comment'] = mergercomment
 
     log_text = str(i)+', '+str(unique_targets[i])+', '+str(bestzmerge)+', '+str(bestclassmerge)+', '+bestspectypemerge+', '+bestissuemerge+', '+mergercomment+'\n'
     print(log_text)
@@ -202,10 +202,10 @@ while i<len(unique_targets):
 
 #----------------------------------
 # Now they've been given best values, make a new vi with only one instance of each TARGETID
-vi_unique = vi_gp['Redrock_z', 'best z', 'best quality', 'Redrock_spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment', 'N_VI'].first()
+vi_unique = vi_gp['Redrock_z', 'best_z', 'best_quality', 'Redrock_spectype', 'best_spectype', 'all_VI_issues', 'all_VI_comments', 'merger_comment', 'N_VI'].first()
 
-number_of_total_objects = (vi_unique['best quality']).count()
-number_of_good_redshifts = (vi_unique.loc[vi_unique['best quality']>=2.5,'best quality']).count()
+number_of_total_objects = (vi_unique['best_quality']).count()
+number_of_good_redshifts = (vi_unique.loc[vi_unique['best_quality']>=2.5,'best_quality']).count()
 
 print('Completed %s/%s checks out of %s objects (fraction needed checking=%s).'%(i,len(unique_targets),number_of_total_objects,len(unique_targets)/number_of_total_objects))
 print('Resulting in %s/%s strong (>=2.5) redshifts for a success rate of %s.'%(number_of_good_redshifts,number_of_total_objects,number_of_good_redshifts/number_of_total_objects))
@@ -216,12 +216,12 @@ log.close()
 #----------------------------------
 # ## Write to file. 
 # 
-# ### The important columns for the truth table construction are **best z**, **best quality**, **best spectype**, and **all VI issues**. 
+# ### The important columns for the truth table construction are **best_z**, **best_quality**, **best_spectype**, and **all_VI_issues**. 
 print('\nOutput to:',output_file)
 print('Log to:',log_file)
 if on_nersc:
   print_merged_file(vi_gp,output_file)
 else:
-  vi_gp['Redrock_z', 'best z', 'best quality', 'Redrock_spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment', 'N_VI'].first().to_csv(output_file)
+  vi_gp['Redrock_z', 'best_z', 'best_quality', 'Redrock_spectype', 'best_spectype', 'all_VI_issues', 'all_VI_comments', 'merger_comment', 'N_VI'].first().to_csv(output_file)
 
 

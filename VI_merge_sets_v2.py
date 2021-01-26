@@ -60,7 +60,7 @@ print('There are ' + str(len(vi)) + ' visual inspections of a total of ' + str(l
 # Add extra data from zbest and fibermap files
 # Add: fiberID, delta_chi2, flux information, MW transmission
 # read in fibermap info, loop over the files for all the petals
-if on_nersc:
+if False: #on_nersc:  #Change back when we have the auxiliary data
   vi = add_auxiliary_data(vi,tiledir,tiles,nights,petals)
 
 #----------------------------------------------------------------
@@ -219,7 +219,7 @@ log.close()
 # ### The important columns for the truth table construction are **best_z**, **best_quality**, **best_spectype**, and **all_VI_issues**. 
 print('\nOutput to:',output_file)
 print('Log to:',log_file)
-if on_nersc:
+if False: #on_nersc:
   print_merged_file(vi_gp,output_file)
 else:
   vi_gp['Redrock_z', 'best_z', 'best_quality', 'Redrock_spectype', 'best_spectype', 'all_VI_issues', 'all_VI_comments', 'merger_comment', 'N_VI'].first().to_csv(output_file)

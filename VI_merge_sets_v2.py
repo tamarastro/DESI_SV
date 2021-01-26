@@ -26,18 +26,18 @@ if on_nersc:
 #--------------------------------------------------------------------------------------------------
 if on_nersc:  
   # Set to directory with all the VI files to merge
-  VI_dir = os.environ['HOME']+'/SV/VI_files/SV0/QSO_Andes/'
+  VI_dir = os.environ['HOME']+'/SV/VI_files/SV0/Blanc/ELG/'
 else:
-  VI_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO_Andes/'
+  VI_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/Blanc/ELG/'
 
 # Here you need to choose the tiles on which your objects were observed
 tiledir   = '/global/cfs/cdirs/desi/spectro/redux/daily/tiles/'
-tiles = ['68002']
-nights = ['20200315']
+tiles = ['80608']
+nights = ['20201215']
 petals = ['0','1', '2', '3', '4', '5', '6' ,'7', '8', '9']
-subset = "_9_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below.  Set to "" to use all.
+subset = "_1_"  # YOU WANT TO CHANGE THIS EACH TIME, it defines "pattern" below.  Set to "" to use all.
 #output_name = "desi-vi_SV0_QSO_tile"+tiles[0]+"_night"+nights[0]+subset+"merged"
-output_name = "desi-vi_QSO_reinspection_"+tiles[0]+subset+"merged"
+output_name = "desi-vi_ELG_tile"+tiles[0]+"_nightdeep"+subset+"merged"
 
 # Prep the output files
 output_file = VI_dir+'output/'+output_name+'.csv'
@@ -60,7 +60,7 @@ print('There are ' + str(len(vi)) + ' visual inspections of a total of ' + str(l
 # Add extra data from zbest and fibermap files
 # Add: fiberID, delta_chi2, flux information, MW transmission
 # read in fibermap info, loop over the files for all the petals
-if on_nersc:
+if False: #on_nersc:  #Change back when we have the auxiliary data
   vi = add_auxiliary_data(vi,tiledir,tiles,nights,petals)
 
 #----------------------------------------------------------------
@@ -219,7 +219,7 @@ log.close()
 # ### The important columns for the truth table construction are **best z**, **best quality**, **best spectype**, and **all VI issues**. 
 print('\nOutput to:',output_file)
 print('Log to:',log_file)
-if on_nersc:
+if False: #on_nersc:
   print_merged_file(vi_gp,output_file)
 else:
   vi_gp['Redrock_z', 'best z', 'best quality', 'Redrock_spectype', 'best spectype', 'all VI issues', 'all VI comments', 'merger comment', 'N_VI'].first().to_csv(output_file)

@@ -23,7 +23,7 @@ if on_nersc:
 else:
   merged_dir = '/Users/uqtdavi1/Documents/programs/DESI/SV/VI_files/SV0/QSO_Andes/output/'  
 
-tiles = ['68002'] 
+tiles = ['68001'] 
 nights = ['20200315']  
 
 # Read in list of files in merged directory
